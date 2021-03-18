@@ -88,7 +88,7 @@ pipeline {
                 openshift.withProject() {
                     echo "Using project: ${openshift.project()}"
                     def buildConfig = openshift.selector("bc", "front-end-build")
-                    openshift.startBuild("front-end-build") # we started the build process
+                    openshift.startBuild("front-end-build")
                     def builds = buildConfig.related('builds')
                     builds.describe()
                     timeout(5) { 
