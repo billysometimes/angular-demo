@@ -83,29 +83,38 @@ pipeline {
                 }
             }
         }
-        stage('build image') {
-            steps{
-                script{
+        stage('Create Image Builder') {
+            when {
+                expression {
                     openshift.withCluster() {
-                        openshift.withProject() {
-                            echo "Using project: ${openshift.project()}"
-                            def buildConfig = openshift.selector("bc", "front-end-build")
-                            openshift.startBuild("front-end-build") 
-                            def builds = buildConfig.related('builds')
-                            builds.describe()
-                            timeout(5) { 
-                                builds.untilEach(1) {
-                                    it.describe()
-                                    echo "Inside loop: ${it}"
-                                        return (it.object().status.phase == "Complete")
-                                }
-                            }
+                        openshift.withProject(DEV_PROJECT) {
+                            return !openshift.selector("bc", "${TEMPLATE_NAME}").exists();
+                        }
+                }
+            }
+        }
+        steps {
+            script {
+                openshift.withCluster() {
+                    openshift.withProject(DEV_PROJECT) {
+                        openshift.newBuild("--name=${TEMPLATE_NAME}", "--docker-image=docker.io/ibmcom/ibm-http-server:9.0.5.0", "--binary=true")
                         }
                     }
                 }
             }
         }
-        /**stage('Deploy to DEV') {
+        stage('Build Image') {
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withProject(env.DEV_PROJECT) {
+                            openshift.selector("bc", "$TEMPLATE_NAME").startBuild("--from-dir=${ARTIFACT_FOLDER}/${APPLICATION_NAME}", "--wait=true")
+                        }
+                    }
+                }
+            }
+        }/**
+        stage('Deploy to DEV') {
             when {
                 expression {
                     openshift.withCluster() {
