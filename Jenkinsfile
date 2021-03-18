@@ -44,7 +44,7 @@ pipeline {
         node {label 'nodejs'}
     }
     environment {
-        APPLICATION_NAME = 'angular-demo'
+        APPLICATION_NAME = 'sample-app'
         GIT_REPO="https://github.com/billysometimes/angular-demo.git"
         GIT_BRANCH="main"
         STAGE_TAG = "promoteToQA"
