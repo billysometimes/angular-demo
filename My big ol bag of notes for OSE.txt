@@ -105,7 +105,6 @@ EXPOSE 80
 =============================================================================================================
 you bet we will need a jenkinsfile:
 
-
 /* The path, relative to the root of the repo (where this Jenkinsfile is),
  * where the file that contains the version tag (e.g. 1.0) resides.
  */
@@ -134,10 +133,8 @@ pipeline {
                 label 'nodejs'
             }
             steps {
-                dir('app') {
                     sh 'npm install'
                     sh 'npm test'
-                }
             }
         }
     }
