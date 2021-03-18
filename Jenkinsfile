@@ -74,7 +74,7 @@ pipeline {
                 '''
             }
         }**/
-        stage('Build Application'){
+        /**stage('Build Application'){
             steps{
                 script{
                 sh '''
@@ -82,7 +82,7 @@ pipeline {
                 '''
                 }
             }
-        }
+        }**/
         stage('Create Image Builder') {
             when {
                 expression {
@@ -108,7 +108,7 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(env.DEV_PROJECT) {
-                            openshift.selector("bc", "$TEMPLATE_NAME").startBuild("--from-dir=${ARTIFACT_FOLDER}/${APPLICATION_NAME}", "--wait=true")
+                            openshift.selector("bc", "$TEMPLATE_NAME").startBuild("--from-file=Dockerfile", "--wait=true")
                         }
                     }
                 }
