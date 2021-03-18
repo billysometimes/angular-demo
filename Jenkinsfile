@@ -78,7 +78,7 @@ pipeline {
             steps{
                 script{
                 sh '''
-                npm build
+                npm run build
                 '''
                 }
             }
