@@ -84,18 +84,22 @@ pipeline {
             }
         }
         stage('build image') {
-            openshift.withCluster() {
-                openshift.withProject() {
-                    echo "Using project: ${openshift.project()}"
-                    def buildConfig = openshift.selector("bc", "front-end-build")
-                    openshift.startBuild("front-end-build")
-                    def builds = buildConfig.related('builds')
-                    builds.describe()
-                    timeout(5) { 
-                        builds.untilEach(1) {
-                            it.describe()
-                            echo "Inside loop: ${it}"
-                            return (it.object().status.phase == "Complete")
+            steps{
+                script{
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            echo "Using project: ${openshift.project()}"
+                            def buildConfig = openshift.selector("bc", "front-end-build")
+                            openshift.startBuild("front-end-build") 
+                            def builds = buildConfig.related('builds')
+                            builds.describe()
+                            timeout(5) { 
+                                builds.untilEach(1) {
+                                    it.describe()
+                                    echo "Inside loop: ${it}"
+                                        return (it.object().status.phase == "Complete")
+                                }
+                            }
                         }
                     }
                 }
