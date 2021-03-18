@@ -1,0 +1,144 @@
+My big ol bag of notes for OSE 4.5 -> from nothin' to apps.
+
+-> install CRC 
+
+make a regular angular app
+
+Under assets/config, create a JSON file with the properties:
+
+```
+{
+    "server1": "url1",
+    "server2": "url2",
+    "server3": "url3"
+}
+```
+
+Create a new provider:
+
+```
+ng g s providers/appConfig
+```
+
+Replace the contents with the following:
+```
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+@Injectable({
+  providedIn: 'root'
+})
+export class AppConfigService {
+  private config: any;
+  constructor(private http: HttpClient) { }
+  public loadConfig() {
+    return this.http.get('./assets/config/config.json')
+      .toPromise()
+      .then((config: any) => {
+        this.config = config;
+        console.log(this.config);
+      })
+      .catch((err: any) => {
+        console.error(err);
+      });
+  }
+  getConfig() {
+    return this.config;
+  }
+}
+```
+
+Replace the contents with the following:
+```
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+@Injectable({
+  providedIn: 'root'
+})
+export class AppConfigService {
+  private config: any;
+  constructor(private http: HttpClient) { }
+  public loadConfig() {
+    return this.http.get('./assets/config/config.json')
+      .toPromise()
+      .then((config: any) => {
+        this.config = config;
+        console.log(this.config);
+      })
+      .catch((err: any) => {
+        console.error(err);
+      });
+  }
+  getConfig() {
+    return this.config;
+  }
+}
+```
+
+Here, we added the APP_INITIALIZER provider to load before the app’s bootstrap, which lets us have the configuration before the app initialization. We then use a factory that calls appService.loadConfig(). Then, if we want to use it from the component, we inject the service and get the config:
+
+```
+import { Component } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { AppConfigService } from './providers/app-config.service';
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  title = 'app';
+constructor(private http: HttpClient, private config: AppConfigService) {
+console.log(this.config.getConfig());
+}
+```
+
+===========================================================================================================
+Next we add our dockerfile, for some reason this client is using ibm-http-server but maybe someday we can do 
+nginx instead:
+
+FROM ibmcom/ibm-http-server
+
+COPY dist/sample-app /opt/IBM/HTTPServer/htdocs
+USER 1001
+EXPOSE 80
+
+=============================================================================================================
+you bet we will need a jenkinsfile:
+
+
+/* The path, relative to the root of the repo (where this Jenkinsfile is),
+ * where the file that contains the version tag (e.g. 1.0) resides.
+ */
+final APP_VERSION_FILE = 'app/VERSION'
+
+pipeline {
+    agent any
+    stages {
+
+        /** Create Credentials
+         *
+         * Create a Jenkins Credential from OpenShift Secret
+         * In this case the OpenShift service tokens for the other
+         * environments.
+         */
+
+
+        /** Dev - MochaJS Test
+         *
+         *  Using agent labeled `nodejs` which is defined in the Kubernetes Jenkins plugin will
+         *  launch a nodejs pod to run the steps section actions.
+         */
+
+        stage('Dev - MochaJS Test') {
+            agent {
+                label 'nodejs'
+            }
+            steps {
+                dir('app') {
+                    sh 'npm install'
+                    sh 'npm test'
+                }
+            }
+        }
+    }
+}
