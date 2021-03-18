@@ -48,7 +48,7 @@ pipeline {
         GIT_REPO="https://github.com/billysometimes/angular-demo.git"
         GIT_BRANCH="main"
         STAGE_TAG = "promoteToQA"
-        DEV_PROJECT = "my-hello-world"
+        DEV_PROJECT = "dev"
         STAGE_PROJECT = "stage"
         TEMPLATE_NAME = "angular-httpd"
         ARTIFACT_FOLDER = "dist"
@@ -66,15 +66,15 @@ pipeline {
                 npm install
                 """
             }
-        }
-       /** stage('Run Tests') {
+        }/**
+        stage('Run Tests') {
             steps {
                 sh '''
                 npm test
                 '''
             }
         }**/
-        /**stage('Build Application'){
+        stage('Build Application'){
             steps{
                 script{
                 sh '''
@@ -82,8 +82,8 @@ pipeline {
                 '''
                 }
             }
-        }**/
-        stage('Create Image Builder') {
+        }
+         stage('Create Image Builder') {
             when {
                 expression {
                     openshift.withCluster() {
@@ -97,7 +97,7 @@ pipeline {
             script {
                 openshift.withCluster() {
                     openshift.withProject(DEV_PROJECT) {
-                        openshift.newBuild("--name=${TEMPLATE_NAME}", "--docker-image=docker.io/ibmcom/ibm-http-server:9.0.5.0", "--binary=true")
+                        openshift.newBuild("--name=${TEMPLATE_NAME}", "--binary=true")
                         }
                     }
                 }
@@ -108,12 +108,12 @@ pipeline {
                 script {
                     openshift.withCluster() {
                         openshift.withProject(env.DEV_PROJECT) {
-                            openshift.selector("bc", "$TEMPLATE_NAME").startBuild("--from-file=Dockerfile", "--wait=true")
+                            openshift.selector("bc", "$TEMPLATE_NAME").startBuild("--from-dir=.","--wait=true")
                         }
                     }
                 }
             }
-        }/**
+        }
         stage('Deploy to DEV') {
             when {
                 expression {
@@ -138,7 +138,7 @@ pipeline {
                     }
                 }
             }
-        }**/
+        }
         /**stage('Promote to STAGE?') {
             steps {
                 timeout(time:15, unit:'MINUTES') {
